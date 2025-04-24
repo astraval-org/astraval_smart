@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1051556054267",
+    "firebase_url": "https://iet-office-tsy-e1e18-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "iet-office-tsy-e1e18",
+    "storage_bucket": "iet-office-tsy-e1e18.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051556054267:android:c506445cf849928b779c5e",
+        "android_client_info": {
+          "package_name": "com.example.astraval_smart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1051556054267-uj9kts81h4sk0nkqhi8tc9t9gi5euslj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA18kJXrxExgWSlwiHvwzTigRgv9MfrKoQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1051556054267-uj9kts81h4sk0nkqhi8tc9t9gi5euslj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1051556054267-lo1f0hpmq1jgei8iadsh7kn6e6vq3iq9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.astravalSmart"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
