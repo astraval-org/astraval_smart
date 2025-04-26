@@ -141,22 +141,45 @@ class _HomePageState extends State<HomePage> {
                                         final nodeId = device.nodes.keys
                                             .elementAt(nodeIndex);
                                         final node = device.nodes[nodeId]!;
+                                        final isToggling =
+                                            node.cmd != node.status;
                                         return ListTile(
                                           title: Text(node.name),
-                                          subtitle: Text('Type: ${node.type}'),
-                                          trailing: Switch(
-                                            value: node.cmd,
-                                            onChanged: (value) async {
-                                              await Future.delayed(
-                                                  const Duration(
-                                                      milliseconds: 200));
-                                              if (mounted) {
-                                                await deviceService
-                                                    .updateNodeCmd(deviceId,
-                                                        nodeId, value);
-                                              }
-                                            },
+                                          subtitle: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text('Type: ${node.type}'),
+                                              Text(
+                                                  'Status: ${node.status ? 'ON' : 'OFF'}'),
+                                            ],
                                           ),
+                                          trailing: isToggling
+                                              ? const SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          strokeWidth: 2),
+                                                )
+                                              : Switch(
+                                                  value: node.status,
+                                                  onChanged: (value) async {
+                                                    if (mounted) {
+                                                      await Future.delayed(
+                                                          const Duration(
+                                                              milliseconds:
+                                                                  200));
+                                                      await deviceService
+                                                          .updateNodeCmd(
+                                                              deviceId,
+                                                              nodeId,
+                                                              value);
+                                                      print(
+                                                          'Toggled $deviceId/$nodeId to cmd: $value');
+                                                    }
+                                                  },
+                                                ),
                                         );
                                       },
                                     ),
