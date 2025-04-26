@@ -15,7 +15,7 @@ class Device {
   factory Device.fromJson(String id, Map<String, dynamic> json) {
     // Safely convert nested 'node' map
     final nodesJsonRaw = json['node'] ?? {};
-    final nodesJson = convertToMapStringDynamic(nodesJsonRaw) ?? {};
+    final nodesJson = convertToMapStringDynamic(nodesJsonRaw);
     final nodes = nodesJson.map(
       (key, value) {
         // Ensure each node value is Map<String, dynamic>

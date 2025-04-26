@@ -50,7 +50,7 @@ class DeviceService {
         print('No data for device: $deviceId');
         return Device(id: deviceId, state: false, nodes:{} );
       }
-      final data = convertToMapStringDynamic(rawData) ?? {};
+      final data = convertToMapStringDynamic(rawData);
       print("device service: $data");
       try {
         final device = Device.fromJson(deviceId, data);
