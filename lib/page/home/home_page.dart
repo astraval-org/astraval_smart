@@ -204,7 +204,7 @@ class _HomePageState extends State<HomePage> {
                                       crossAxisCount: 2,
                                       crossAxisSpacing: 12,
                                       mainAxisSpacing: 12,
-                                      childAspectRatio: 0.9,
+                                      childAspectRatio: 1,
                                     ),
                                     itemCount: deviceNodes.length,
                                     itemBuilder: (context, nodeIndex) {
@@ -275,7 +275,6 @@ class NodeCard extends StatelessWidget {
       elevation: 4,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
           // Apply blur overlay for offline nodes
           boxShadow: isOffline
@@ -297,7 +296,7 @@ class NodeCard extends StatelessWidget {
               child: Text(
                 node.name,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
