@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:astraval_smart/model/device.dart';
 import 'package:astraval_smart/model/user_data.dart';
 import 'package:astraval_smart/service/device_service.dart';
@@ -19,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   Map<String, Device> devices = {};
   UserService userService = UserService();
   DeviceService deviceService = DeviceService();
+  Map<String, Timer> _toggleTimers = {}; // Track timers for each node
 
   @override
   void initState() {
@@ -26,6 +28,13 @@ class _HomePageState extends State<HomePage> {
     userID = AuthManage().getUserID();
     print('Current userID: $userID');
     _fetchUserData();
+  }
+
+  @override
+  void dispose() {
+    // Cancel all timers to prevent memory leaks
+    _toggleTimers.forEach((_, timer) => timer.cancel());
+    super.dispose();
   }
 
   Future<void> _fetchUserData() async {
@@ -75,6 +84,32 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _handleToggle(
+      String deviceId, String nodeId, bool cmdValue) async {
+    await deviceService.updateNodeCmd(deviceId, nodeId, cmdValue);
+    print('Toggled $deviceId/$nodeId to cmd: $cmdValue');
+
+    // Cancel any existing timer for this node
+    _toggleTimers['$deviceId/$nodeId']?.cancel();
+
+    // Start a 5-second timer
+    _toggleTimers['$deviceId/$nodeId'] = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        final device = devices[deviceId];
+        final node = device?.nodes[nodeId];
+        if (node != null && node.cmd != node.status) {
+          print(
+              'Timeout: $deviceId/$nodeId cmd (${node.cmd}) != status (${node.status})');
+          // Reset cmd to match status
+          deviceService.updateNodeCmd(deviceId, nodeId, node.status);
+          // Set device state to false (offline)
+          deviceService.updateDeviceState(deviceId, false);
+          print('Reset cmd to ${node.status} and set $deviceId state to false');
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     print('Building HomePage with devices: ${devices.keys.toList()}');
@@ -118,72 +153,74 @@ class _HomePageState extends State<HomePage> {
                         final device = devices[deviceId]!;
                         print('Rendering device: $deviceId');
                         return RepaintBoundary(
-                          child: ExpansionTile(
-                            title: Text(
-                              'Device $deviceId (${device.state ? 'Online' : 'Offline'})',
-                              style: TextStyle(
-                                color: device.state ? Colors.green : Colors.red,
-                              ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color:
+                                  Colors.transparent, // Blur effect for offline
                             ),
-                            children: device.nodes.isEmpty
-                                ? [
-                                    const ListTile(
-                                      title: Text("No nodes available"),
-                                    )
-                                  ]
-                                : [
-                                    ListView.builder(
-                                      shrinkWrap: true,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      itemCount: device.nodes.length,
-                                      itemBuilder: (context, nodeIndex) {
-                                        final nodeId = device.nodes.keys
-                                            .elementAt(nodeIndex);
-                                        final node = device.nodes[nodeId]!;
-                                        final isToggling =
-                                            node.cmd != node.status;
-                                        return ListTile(
-                                          title: Text(node.name),
-                                          subtitle: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text('Type: ${node.type}'),
-                                              Text(
-                                                  'Status: ${node.status ? 'ON' : 'OFF'}'),
-                                            ],
-                                          ),
-                                          trailing: isToggling
-                                              ? const SizedBox(
-                                                  width: 24,
-                                                  height: 24,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                          strokeWidth: 2),
-                                                )
-                                              : Switch(
-                                                  value: node.status,
-                                                  onChanged: (value) async {
-                                                    if (mounted) {
-                                                      await Future.delayed(
-                                                          const Duration(
-                                                              milliseconds:
-                                                                  200));
-                                                      await deviceService
-                                                          .updateNodeCmd(
-                                                              deviceId,
-                                                              nodeId,
-                                                              value);
-                                                      print(
-                                                          'Toggled $deviceId/$nodeId to cmd: $value');
-                                                    }
-                                                  },
-                                                ),
-                                        );
-                                      },
-                                    ),
-                                  ],
+                            child: ExpansionTile(
+                              title: Text(
+                                'Device $deviceId (${device.state ? 'Online' : 'Offline'})',
+                                style: TextStyle(
+                                  color:
+                                      device.state ? Colors.green : Colors.red,
+                                ),
+                              ),
+                              children: device.nodes.isEmpty
+                                  ? [
+                                      const ListTile(
+                                        title: Text("No nodes available"),
+                                      )
+                                    ]
+                                  : [
+                                      ListView.builder(
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: device.nodes.length,
+                                        itemBuilder: (context, nodeIndex) {
+                                          final nodeId = device.nodes.keys
+                                              .elementAt(nodeIndex);
+                                          final node = device.nodes[nodeId]!;
+                                          final isToggling =
+                                              node.cmd != node.status;
+                                          return ListTile(
+                                            title: Text(node.name),
+                                            subtitle: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text('Type: ${node.type}'),
+                                                Text(
+                                                    'Status: ${node.status ? 'ON' : 'OFF'}'),
+                                              ],
+                                            ),
+                                            trailing: isToggling
+                                                ? const SizedBox(
+                                                    width: 24,
+                                                    height: 24,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                            strokeWidth: 2),
+                                                  )
+                                                : Switch(
+                                                    value: node.status,
+                                                    onChanged: device.state
+                                                        ? (value) async {
+                                                            if (mounted) {
+                                                              await _handleToggle(
+                                                                  deviceId,
+                                                                  nodeId,
+                                                                  value);
+                                                            }
+                                                          }
+                                                        : null, // Disable switch if device is offline
+                                                  ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                            ),
                           ),
                         );
                       },
