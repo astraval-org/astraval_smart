@@ -10,13 +10,17 @@ void main() async {
   );
   runApp(const MyApp());
 }
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+  
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        navigatorKey: navigatorKey,
+
       title: 'AstRaval Smart',
       themeMode: ThemeMode.system,
       darkTheme: ThemeData.dark(),

@@ -10,6 +10,7 @@
 ### Flutter Dependencies
 ```bash
 flutter pub add firebase_core google_sign_in firebase_auth flutter_signin_button
+flutter pub add flutter_bluetooth_serial geolocator permission_handler
 ```
 ### Dart Dependencies
 - **flutter_test**: sdk: flutter
